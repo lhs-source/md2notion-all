@@ -9,14 +9,9 @@ import requests
 import threading
 import traceback
 
-# notion token_v2
-client = NotionClient(token_v2="NOTION TOKEN HERE")
-# target notion page
-rootPage = client.get_block("TARGET PAGE URL HERE")
-        
 lock = threading.Lock()
 
-def doUploadTree():
+def doUploadTree(rootPage):
     # key, value for tree of notion pages,
     # {'page' : 'abcdef-12345', ...}
     key_list = {
@@ -97,16 +92,25 @@ def getExistPage(targetPage, title):
             return page
     return None
 
-# multithread running
-threads = []
-threadCnt = 4
+def uploadMd(token_v2, target, threadCnt):
+    print(token_v2, target, threadCnt)
+    # notion token_v2
+    client = NotionClient(token_v2=token_v2)
+    # target notion page
+    rootPage = client.get_block(target)
 
-for i in range(threadCnt):
-    t = threading.Thread(target=doUploadTree)
-    threads.append(t)
+    # multithread running
+    threads = []
+    threadCnt = 4
 
-for i in range(threadCnt):
-    threads[i].start()
+    for i in range(threadCnt):
+        t = threading.Thread(target=doUploadTree, args=(rootPage))
+        threads.append(t)
 
-for i in range(threadCnt):
-    threads[i].join()
+    for i in range(threadCnt):
+        threads[i].start()
+
+    for i in range(threadCnt):
+        threads[i].join()
+    doUploadTree(rootPage)
+
